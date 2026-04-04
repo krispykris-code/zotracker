@@ -355,7 +355,7 @@ export default function Home() {
                         </span>
                       )}
                     </div>
-                    <div className="text-base text-slate-400 mt-0.5">
+                    <div className="text-lg text-slate-400 mt-0.5">
                       🛏 {r.bedtime}
                       {r.wakeTime ? ` → ☀️ ${r.wakeTime}` : ""}
                     </div>
@@ -363,18 +363,18 @@ export default function Home() {
 
                   {/* Edit / Delete (own records only) */}
                   {r.person === savedName && (
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => handleEdit(r)}
-                        className="text-slate-500 hover:text-indigo-400 text-sm p-1 transition-colors"
+                        className="bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-3 py-2 rounded-xl transition-colors active:scale-95"
                       >
-                        ✎
+                        編輯
                       </button>
                       <button
                         onClick={() => handleDelete(r.id)}
-                        className="text-slate-600 hover:text-rose-400 text-sm p-1 transition-colors"
+                        className="bg-slate-700 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-sm px-3 py-2 rounded-xl transition-colors active:scale-95"
                       >
-                        ✕
+                        刪除
                       </button>
                     </div>
                   )}
