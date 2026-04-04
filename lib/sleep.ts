@@ -37,6 +37,12 @@ export function formatShortDate(dateStr: string): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
+export function formatWeekday(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+  return weekdays[d.getDay()];
+}
+
 export function todayStr(): string {
   return new Date().toLocaleDateString("sv-SE");
 }

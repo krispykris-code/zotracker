@@ -16,7 +16,8 @@ import { SleepRecord } from "@/lib/types";
 import {
   calcDuration,
   durationColor,
-  formatDate,
+  formatShortDate,
+  formatWeekday,
   smartDefaults,
   getPersonColor,
 } from "@/lib/sleep";
@@ -176,16 +177,6 @@ export default function Home() {
     }
   }, [shareLink]);
 
-  // ─── Group records by date ───────────────────────
-  const grouped = records.reduce(
-    (acc, r) => {
-      if (!acc[r.date]) acc[r.date] = [];
-      acc[r.date].push(r);
-      return acc;
-    },
-    {} as Record<string, SleepRecord[]>
-  );
-
   // ═══════════════════════════════════════════════════
   // RENDER: No room yet → Landing
   // ═══════════════════════════════════════════════════
@@ -312,7 +303,7 @@ export default function Home() {
       )}
 
       {/* Record list */}
-      <main className="flex-1 overflow-y-auto no-scrollbar px-5 py-4">
+      <main className="flex-1 overflow-y-auto no-scrollbar px-5 py-3">
         {records.length === 0 && (
           <div className="text-center text-slate-500 mt-20">
             <div className="text-4xl mb-3">📝</div>
@@ -321,68 +312,64 @@ export default function Home() {
           </div>
         )}
 
-        {Object.entries(grouped).map(([date, recs]) => (
-          <div key={date} className="mb-6">
-            <h2 className="text-sm font-medium text-slate-400 mb-2 px-1">
-              {formatDate(date)}
-            </h2>
-            <div className="flex flex-col gap-2">
-              {recs.map((r) => (
-                <div
-                  key={r.id}
-                  className="bg-slate-800/60 rounded-2xl px-4 py-3 flex items-center gap-3"
-                >
-                  {/* Avatar */}
-                  <div
-                    className={`w-9 h-9 rounded-full ${getPersonColor(r.person)} flex items-center justify-center text-sm font-bold text-white shrink-0`}
-                  >
-                    {r.person[0]}
-                  </div>
+        <div className="flex flex-col gap-1.5">
+          {records.map((r) => (
+            <div
+              key={r.id}
+              className="bg-slate-800/60 rounded-xl px-3 py-2 flex items-center gap-2.5"
+            >
+              {/* Date badge */}
+              <div className="w-10 h-10 rounded-lg bg-slate-700/80 flex flex-col items-center justify-center shrink-0">
+                <span className="text-xs font-semibold text-slate-200 leading-none">
+                  {formatShortDate(r.date)}
+                </span>
+                <span className="text-[10px] text-slate-400 leading-none mt-0.5">
+                  {formatWeekday(r.date)}
+                </span>
+              </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-medium truncate">{r.person}</span>
-                      {r.wakeTime ? (
-                        <span
-                          className={`text-lg font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
-                        >
-                          {calcDuration(r.bedtime, r.wakeTime)}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-slate-500">
-                          待補起床時間
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-lg text-slate-400 mt-0.5">
-                      🛏 {r.bedtime}
-                      {r.wakeTime ? ` → ☀️ ${r.wakeTime}` : ""}
-                    </div>
-                  </div>
-
-                  {/* Edit / Delete (own records only) */}
-                  {r.person === savedName && (
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => handleEdit(r)}
-                        className="bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-3 py-2 rounded-xl transition-colors active:scale-95"
-                      >
-                        編輯
-                      </button>
-                      <button
-                        onClick={() => handleDelete(r.id)}
-                        className="bg-slate-700 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-sm px-3 py-2 rounded-xl transition-colors active:scale-95"
-                      >
-                        刪除
-                      </button>
-                    </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-medium truncate">{r.person}</span>
+                  {r.wakeTime ? (
+                    <span
+                      className={`text-lg font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
+                    >
+                      {calcDuration(r.bedtime, r.wakeTime)}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-slate-500">
+                      待補起床時間
+                    </span>
                   )}
                 </div>
-              ))}
+                <div className="text-lg text-slate-400">
+                  🛏 {r.bedtime}
+                  {r.wakeTime ? ` → ☀️ ${r.wakeTime}` : ""}
+                </div>
+              </div>
+
+              {/* Edit / Delete (own records only) */}
+              {r.person === savedName && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => handleEdit(r)}
+                    className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors active:scale-95"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    onClick={() => handleDelete(r.id)}
+                    className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 rounded-lg transition-colors active:scale-95"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </main>
 
       {/* Add button */}
