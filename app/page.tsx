@@ -7,6 +7,7 @@ import {
   doc,
   setDoc,
   deleteDoc,
+  getDocs,
   onSnapshot,
   query,
   orderBy,
@@ -19,7 +20,6 @@ import {
   formatShortDate,
   formatWeekday,
   smartDefaults,
-  getPersonColor,
 } from "@/lib/sleep";
 import {
   registerSW,
@@ -127,6 +127,38 @@ export default function Home() {
     setSavedName(trimmed);
   }, [userName]);
 
+  // ─── Room history helpers ─────────────────────────
+  const getRoomHistory = useCallback((): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem("zotracker-room-history") || "[]");
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const addToRoomHistory = useCallback(
+    (id: string) => {
+      const history = getRoomHistory().filter((h) => h !== id);
+      history.unshift(id); // newest first
+      localStorage.setItem(
+        "zotracker-room-history",
+        JSON.stringify(history.slice(0, 5))
+      );
+    },
+    [getRoomHistory]
+  );
+
+  const removeFromRoomHistory = useCallback(
+    (id: string) => {
+      const history = getRoomHistory().filter((h) => h !== id);
+      localStorage.setItem(
+        "zotracker-room-history",
+        JSON.stringify(history)
+      );
+    },
+    [getRoomHistory]
+  );
+
   // ─── Go to homepage ───────────────────────────────
   const handleGoHome = useCallback(() => {
     localStorage.removeItem("zotracker-room");
@@ -136,8 +168,10 @@ export default function Home() {
   // ─── Create room ─────────────────────────────────
   const handleCreateRoom = useCallback(() => {
     const id = Math.random().toString(36).slice(2, 8);
+    addToRoomHistory(id);
+    localStorage.setItem("zotracker-room", id);
     window.location.search = `?room=${id}`;
-  }, []);
+  }, [addToRoomHistory]);
 
   // ─── Add / update record ──────────────────────────
   const handleAddRecord = useCallback(async () => {
@@ -197,19 +231,44 @@ export default function Home() {
     }
   }, [shareLink]);
 
+  // Room settings states
+  const [showSettings, setShowSettings] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // ─── Delete entire room ──────────────────────────
+  const handleDeleteRoom = useCallback(async () => {
+    if (!roomId) return;
+    const snap = await getDocs(collection(db, "rooms", roomId, "records"));
+    const deletes = snap.docs.map((d) => deleteDoc(d.ref));
+    await Promise.all(deletes);
+    removeFromRoomHistory(roomId);
+    localStorage.removeItem("zotracker-room");
+    setShowDeleteConfirm(false);
+    setShowSettings(false);
+    window.location.href = window.location.origin;
+  }, [roomId, removeFromRoomHistory]);
+
   // ─── Join room ────────────────────────────────────
   const [showJoinInput, setShowJoinInput] = useState(false);
   const [joinInput, setJoinInput] = useState("");
+  const [historyVersion, setHistoryVersion] = useState(0);
 
-  const handleJoinRoom = useCallback(() => {
-    const input = joinInput.trim();
-    if (!input) return;
-    // Support both full URL and room ID only
-    const match = input.match(/[?&]room=([^&]+)/);
-    const id = match ? match[1] : input;
-    localStorage.setItem("zotracker-room", id);
-    window.location.search = `?room=${id}`;
-  }, [joinInput]);
+  const handleJoinRoom = useCallback(
+    (idOverride?: string) => {
+      const input = idOverride || joinInput.trim();
+      if (!input) return;
+      const match = input.match(/[?&]room=([^&]+)/);
+      const id = match ? match[1] : input;
+      addToRoomHistory(id);
+      localStorage.setItem("zotracker-room", id);
+      window.location.search = `?room=${id}`;
+    },
+    [joinInput, addToRoomHistory]
+  );
+
+  const handleJoinRoomClick = useCallback(() => {
+    handleJoinRoom();
+  }, [handleJoinRoom]);
 
   // ═══════════════════════════════════════════════════
   // RENDER: No room yet → Landing
@@ -266,12 +325,43 @@ export default function Home() {
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-base placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 mb-3"
               />
               <button
-                onClick={handleJoinRoom}
+                onClick={handleJoinRoomClick}
                 disabled={!joinInput.trim()}
                 className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-3 rounded-xl transition-colors active:scale-95"
               >
                 加入
               </button>
+
+              {/* Room history */}
+              {historyVersion >= 0 && getRoomHistory().length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs text-slate-500 mb-2">最近加入的房間</p>
+                  <div className="flex flex-col gap-1">
+                    {getRoomHistory().map((rid) => (
+                      <div
+                        key={rid}
+                        className="flex items-center bg-slate-800 rounded-lg"
+                      >
+                        <button
+                          onClick={() => handleJoinRoom(rid)}
+                          className="flex-1 text-left text-sm text-slate-300 px-3 py-2.5 hover:text-white transition-colors"
+                        >
+                          {rid}
+                        </button>
+                        <button
+                          onClick={() => {
+                            removeFromRoomHistory(rid);
+                            setHistoryVersion((v) => v + 1);
+                          }}
+                          className="text-slate-600 hover:text-rose-400 px-3 py-2.5 text-sm transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -346,6 +436,12 @@ export default function Home() {
             className="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-xl transition-colors active:scale-95"
           >
             邀請朋友
+          </button>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="bg-slate-800 hover:bg-slate-700 text-sm px-3 py-2 rounded-xl transition-colors active:scale-95"
+          >
+            ⚙️
           </button>
         </div>
       </header>
@@ -563,6 +659,67 @@ export default function Home() {
                 儲存
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Room settings overlay */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => {
+              setShowSettings(false);
+              setShowDeleteConfirm(false);
+            }}
+          />
+          <div className="relative w-full max-w-xs bg-slate-900 rounded-2xl px-5 py-5">
+            {!showDeleteConfirm ? (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-lg">房間設定</h3>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    className="text-slate-400 hover:text-white text-xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <p className="text-sm text-slate-400 mb-4">
+                  房間 ID：{roomId}
+                </p>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold py-3 rounded-xl transition-colors active:scale-95"
+                >
+                  刪除此房間所有資料
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-center mb-4">
+                  <span className="text-3xl">⚠️</span>
+                  <h3 className="font-semibold text-lg mt-2">確定要刪除嗎？</h3>
+                </div>
+                <p className="text-sm text-slate-400 text-center mb-5">
+                  此操作會永久刪除房間內所有人的睡眠紀錄，且無法復原。
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl transition-colors active:scale-95"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleDeleteRoom}
+                    className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 rounded-xl transition-colors active:scale-95"
+                  >
+                    確定刪除
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
