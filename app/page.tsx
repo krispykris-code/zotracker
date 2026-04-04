@@ -58,7 +58,19 @@ export default function Home() {
 
   // ─── Init: load room & name ──────────────────────
   useEffect(() => {
-    const rid = getRoomId();
+    let rid = getRoomId();
+    // If no room in URL, check localStorage for saved room
+    if (!rid) {
+      const savedRoom = localStorage.getItem("zotracker-room");
+      if (savedRoom) {
+        // Redirect to saved room
+        window.location.search = `?room=${savedRoom}`;
+        return;
+      }
+    } else {
+      // Save room ID to localStorage
+      localStorage.setItem("zotracker-room", rid);
+    }
     setRoomId(rid);
     const stored = localStorage.getItem("zotracker-name");
     if (stored) {
@@ -114,6 +126,12 @@ export default function Home() {
     localStorage.setItem("zotracker-name", trimmed);
     setSavedName(trimmed);
   }, [userName]);
+
+  // ─── Go to homepage ───────────────────────────────
+  const handleGoHome = useCallback(() => {
+    localStorage.removeItem("zotracker-room");
+    window.location.href = window.location.origin;
+  }, []);
 
   // ─── Create room ─────────────────────────────────
   const handleCreateRoom = useCallback(() => {
@@ -244,9 +262,12 @@ export default function Home() {
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
         <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
+          <button
+            onClick={handleGoHome}
+            className="text-xl font-bold flex items-center gap-2 hover:text-indigo-400 transition-colors"
+          >
             🌙 ZoTracker
-          </h1>
+          </button>
           <p className="text-xs text-slate-500 mt-0.5">
             Room: {roomId} · {savedName}
           </p>
