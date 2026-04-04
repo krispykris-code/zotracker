@@ -342,10 +342,10 @@ export default function Home() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-medium truncate">{r.person}</span>
+                      <span className="text-lg font-medium truncate">{r.person}</span>
                       {r.wakeTime ? (
                         <span
-                          className={`text-sm font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
+                          className={`text-base font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
                         >
                           {calcDuration(r.bedtime, r.wakeTime)}
                         </span>
@@ -355,7 +355,7 @@ export default function Home() {
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-400 mt-0.5">
+                    <div className="text-base text-slate-400 mt-0.5">
                       🛏 {r.bedtime}
                       {r.wakeTime ? ` → ☀️ ${r.wakeTime}` : ""}
                     </div>
