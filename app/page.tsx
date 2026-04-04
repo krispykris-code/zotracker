@@ -345,7 +345,7 @@ export default function Home() {
                       <span className="text-lg font-medium truncate">{r.person}</span>
                       {r.wakeTime ? (
                         <span
-                          className={`text-base font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
+                          className={`text-lg font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
                         >
                           {calcDuration(r.bedtime, r.wakeTime)}
                         </span>
