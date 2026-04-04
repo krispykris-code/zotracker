@@ -372,102 +372,112 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Add button */}
-      {!showForm && (
-        <div className="px-5 pb-5 pt-2">
-          <button
-            onClick={() => {
-              const defaults = smartDefaults();
-              setFormDate(defaults.date);
-              setFormBedtime(defaults.bedtime);
-              setFormWakeTime(defaults.wakeTime);
-              setShowForm(true);
-            }}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-4 rounded-2xl text-lg transition-colors active:scale-95"
-          >
-            + 新增睡眠紀錄
-          </button>
-        </div>
-      )}
+      {/* Add button - fixed at bottom */}
+      <div className="px-5 pb-5 pt-2">
+        <button
+          onClick={() => {
+            const defaults = smartDefaults();
+            setFormDate(defaults.date);
+            setFormBedtime(defaults.bedtime);
+            setFormWakeTime(defaults.wakeTime);
+            setEditingRecord(null);
+            setShowForm(true);
+          }}
+          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-4 rounded-2xl text-lg transition-colors active:scale-95"
+        >
+          + 新增睡眠紀錄
+        </button>
+      </div>
 
-      {/* Add form (bottom sheet style) */}
+      {/* Overlay form */}
       {showForm && (
-        <div className="border-t border-slate-800 bg-slate-900 px-5 py-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-lg">
-              {editingRecord ? "編輯紀錄" : "新增紀錄"}
-            </h3>
-            <button
-              onClick={() => {
-                setShowForm(false);
-                setEditingRecord(null);
-              }}
-              className="text-slate-400 hover:text-white text-xl"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            {/* Date */}
-            <label className="flex flex-col gap-1">
-              <span className="text-sm text-slate-400">日期</span>
-              <input
-                type="date"
-                value={formDate}
-                onChange={(e) => setFormDate(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-              />
-            </label>
-
-            {/* Bedtime & Wake time */}
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-slate-400">🛏 上床時間</span>
-                <input
-                  type="time"
-                  value={formBedtime}
-                  onChange={(e) => setFormBedtime(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-slate-400">☀️ 起床時間</span>
-                <input
-                  type="time"
-                  value={formWakeTime}
-                  onChange={(e) => setFormWakeTime(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                />
-              </label>
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => {
+              setShowForm(false);
+              setEditingRecord(null);
+            }}
+          />
+          {/* Form card */}
+          <div className="relative w-full max-w-lg bg-slate-900 rounded-t-2xl px-5 py-5 animate-[slideUp_0.2s_ease-out]">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg">
+                {editingRecord ? "編輯紀錄" : "新增紀錄"}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingRecord(null);
+                }}
+                className="text-slate-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
             </div>
 
-            {/* Preview */}
-            <div className="text-center py-2">
-              {formBedtime && formWakeTime ? (
-                <>
-                  <span className="text-sm text-slate-400">預估睡眠時長：</span>
-                  <span
-                    className={`text-lg font-bold ${durationColor(formBedtime, formWakeTime)}`}
-                  >
-                    {calcDuration(formBedtime, formWakeTime)}
+            <div className="grid grid-cols-1 gap-4">
+              {/* Date */}
+              <label className="flex flex-col gap-1">
+                <span className="text-sm text-slate-400">日期</span>
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
+                />
+              </label>
+
+              {/* Bedtime & Wake time */}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm text-slate-400">🛏 上床時間</span>
+                  <input
+                    type="time"
+                    value={formBedtime}
+                    onChange={(e) => setFormBedtime(e.target.value)}
+                    className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm text-slate-400">☀️ 起床時間</span>
+                  <input
+                    type="time"
+                    value={formWakeTime}
+                    onChange={(e) => setFormWakeTime(e.target.value)}
+                    className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
+                  />
+                </label>
+              </div>
+
+              {/* Preview */}
+              <div className="text-center py-2">
+                {formBedtime && formWakeTime ? (
+                  <>
+                    <span className="text-sm text-slate-400">預估睡眠時長：</span>
+                    <span
+                      className={`text-lg font-bold ${durationColor(formBedtime, formWakeTime)}`}
+                    >
+                      {calcDuration(formBedtime, formWakeTime)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-sm text-slate-400">
+                    填入上床和起床時間後，自動計算睡眠時長
                   </span>
-                </>
-              ) : (
-                <span className="text-sm text-slate-400">
-                  填入上床和起床時間後，自動計算睡眠時長
-                </span>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Submit */}
-            <button
-              onClick={handleAddRecord}
-              disabled={!formBedtime}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-4 rounded-2xl transition-colors active:scale-95"
-            >
-              儲存
-            </button>
+              {/* Submit */}
+              <button
+                onClick={handleAddRecord}
+                disabled={!formBedtime}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-4 rounded-2xl transition-colors active:scale-95"
+              >
+                儲存
+              </button>
+            </div>
           </div>
         </div>
       )}
