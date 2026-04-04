@@ -43,6 +43,7 @@ export default function Home() {
   const [savedName, setSavedName] = useState("");
   const [records, setRecords] = useState<SleepRecord[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<SleepRecord | null>(null);
 
   // Form states
   const [formDate, setFormDate] = useState("");
@@ -117,19 +118,31 @@ export default function Home() {
     window.location.search = `?room=${id}`;
   }, []);
 
-  // ─── Add record ──────────────────────────────────
+  // ─── Add / update record ──────────────────────────
   const handleAddRecord = useCallback(async () => {
     if (!roomId || !savedName) return;
-    const docId = `${formDate}_${savedName}`;
+    const docId = editingRecord
+      ? editingRecord.id
+      : `${formDate}_${savedName}`;
     await setDoc(doc(db, "rooms", roomId, "records", docId), {
       date: formDate,
       bedtime: formBedtime,
       wakeTime: formWakeTime,
       person: savedName,
-      createdAt: Date.now(),
+      createdAt: editingRecord?.createdAt ?? Date.now(),
     });
     setShowForm(false);
-  }, [roomId, savedName, formDate, formBedtime, formWakeTime]);
+    setEditingRecord(null);
+  }, [roomId, savedName, formDate, formBedtime, formWakeTime, editingRecord]);
+
+  // ─── Edit record (fill in wake time) ─────────────
+  const handleEdit = useCallback((r: SleepRecord) => {
+    setEditingRecord(r);
+    setFormDate(r.date);
+    setFormBedtime(r.bedtime);
+    setFormWakeTime(r.wakeTime);
+    setShowForm(true);
+  }, []);
 
   // ─── Delete record ───────────────────────────────
   const handleDelete = useCallback(
@@ -326,25 +339,42 @@ export default function Home() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="font-medium truncate">{r.person}</span>
-                      <span
-                        className={`text-sm font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
-                      >
-                        {calcDuration(r.bedtime, r.wakeTime)}
-                      </span>
+                      {r.wakeTime ? (
+                        <span
+                          className={`text-sm font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
+                        >
+                          {calcDuration(r.bedtime, r.wakeTime)}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-slate-500">
+                          待補起床時間
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5">
-                      🛏 {r.bedtime} → ☀️ {r.wakeTime}
+                      🛏 {r.bedtime}
+                      {r.wakeTime ? ` → ☀️ ${r.wakeTime}` : ""}
                     </div>
                   </div>
 
-                  {/* Delete (own records only) */}
+                  {/* Edit / Delete (own records only) */}
                   {r.person === savedName && (
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="text-slate-600 hover:text-rose-400 text-sm p-1 transition-colors"
-                    >
-                      ✕
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {!r.wakeTime && (
+                        <button
+                          onClick={() => handleEdit(r)}
+                          className="text-indigo-400 hover:text-indigo-300 text-xs px-2 py-1 rounded-lg bg-indigo-500/10 transition-colors"
+                        >
+                          補填
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="text-slate-600 hover:text-rose-400 text-sm p-1 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
@@ -375,9 +405,14 @@ export default function Home() {
       {showForm && (
         <div className="border-t border-slate-800 bg-slate-900 px-5 py-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-lg">新增紀錄</h3>
+            <h3 className="font-semibold text-lg">
+              {editingRecord ? "補填起床時間" : "新增紀錄"}
+            </h3>
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                setEditingRecord(null);
+              }}
               className="text-slate-400 hover:text-white text-xl"
             >
               ✕
@@ -439,7 +474,7 @@ export default function Home() {
             {/* Submit */}
             <button
               onClick={handleAddRecord}
-              disabled={!formBedtime || !formWakeTime}
+              disabled={!formBedtime}
               className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-4 rounded-2xl transition-colors active:scale-95"
             >
               儲存

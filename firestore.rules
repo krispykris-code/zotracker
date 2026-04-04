@@ -9,10 +9,11 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.person is string
                     && request.resource.data.date is string
-                    && request.resource.data.bedtime is string
-                    && request.resource.data.wakeTime is string;
+                    && request.resource.data.bedtime is string;
       allow delete: if true;
-      allow update: if false; // records are immutable, delete and re-create instead
+      allow update: if request.resource.data.person is string
+                    && request.resource.data.date is string
+                    && request.resource.data.bedtime is string;
     }
 
     // Block everything else
