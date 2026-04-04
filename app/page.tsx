@@ -355,13 +355,13 @@ export default function Home() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => handleEdit(r)}
-                    className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-lg text-slate-300 rounded-lg transition-colors active:scale-95"
+                    className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-xl text-slate-300 rounded-lg transition-colors active:scale-95"
                   >
                     ✎
                   </button>
                   <button
                     onClick={() => handleDelete(r.id)}
-                    className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-rose-500/20 text-lg text-slate-400 hover:text-rose-400 rounded-lg transition-colors active:scale-95"
+                    className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-rose-500/20 text-xl text-slate-400 hover:text-rose-400 rounded-lg transition-colors active:scale-95"
                   >
                     ✕
                   </button>
