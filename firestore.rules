@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Room records: anyone with the room ID can read/write records in that room
+    // But cannot list all rooms or access other rooms
+    match /rooms/{roomId}/records/{recordId} {
+      allow read: if true;
+      allow create: if request.resource.data.person is string
+                    && request.resource.data.date is string
+                    && request.resource.data.bedtime is string
+                    && request.resource.data.wakeTime is string;
+      allow delete: if true;
+      allow update: if false; // records are immutable, delete and re-create instead
+    }
+
+    // Block everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
