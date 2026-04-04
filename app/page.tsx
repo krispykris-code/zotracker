@@ -197,6 +197,20 @@ export default function Home() {
     }
   }, [shareLink]);
 
+  // ─── Join room ────────────────────────────────────
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [joinInput, setJoinInput] = useState("");
+
+  const handleJoinRoom = useCallback(() => {
+    const input = joinInput.trim();
+    if (!input) return;
+    // Support both full URL and room ID only
+    const match = input.match(/[?&]room=([^&]+)/);
+    const id = match ? match[1] : input;
+    localStorage.setItem("zotracker-room", id);
+    window.location.search = `?room=${id}`;
+  }, [joinInput]);
+
   // ═══════════════════════════════════════════════════
   // RENDER: No room yet → Landing
   // ═══════════════════════════════════════════════════
@@ -208,12 +222,60 @@ export default function Home() {
           <h1 className="text-3xl font-bold mb-2">ZoTracker</h1>
           <p className="text-slate-400">和朋友一起記錄睡眠</p>
         </div>
-        <button
-          onClick={handleCreateRoom}
-          className="w-full max-w-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-4 px-6 rounded-2xl text-lg transition-colors active:scale-95"
-        >
-          建立房間
-        </button>
+        <div className="w-full max-w-xs flex flex-col gap-3">
+          <button
+            onClick={handleCreateRoom}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-4 px-6 rounded-2xl text-lg transition-colors active:scale-95"
+          >
+            建立房間
+          </button>
+          <button
+            onClick={() => setShowJoinInput(true)}
+            className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-4 px-6 rounded-2xl text-lg transition-colors active:scale-95"
+          >
+            加入房間
+          </button>
+        </div>
+
+        {/* Join room input overlay */}
+        {showJoinInput && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+            <div
+              className="absolute inset-0 bg-black/60"
+              onClick={() => setShowJoinInput(false)}
+            />
+            <div className="relative w-full max-w-xs bg-slate-900 rounded-2xl px-5 py-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">加入房間</h3>
+                <button
+                  onClick={() => setShowJoinInput(false)}
+                  className="text-slate-400 hover:text-white text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-sm text-slate-400 mb-3">
+                貼上朋友分享的連結或房間 ID
+              </p>
+              <input
+                type="text"
+                value={joinInput}
+                onChange={(e) => setJoinInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
+                placeholder="連結或房間 ID"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-base placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 mb-3"
+              />
+              <button
+                onClick={handleJoinRoom}
+                disabled={!joinInput.trim()}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-3 rounded-xl transition-colors active:scale-95"
+              >
+                加入
+              </button>
+            </div>
+          </div>
+        )}
+
         <p className="text-slate-500 text-sm text-center max-w-xs">
           建立房間後分享連結給朋友，
           <br />
