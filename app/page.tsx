@@ -319,11 +319,11 @@ export default function Home() {
               className="bg-slate-800/60 rounded-xl px-3 py-2 flex items-center gap-2.5"
             >
               {/* Date badge */}
-              <div className="w-10 h-10 rounded-lg bg-slate-700/80 flex flex-col items-center justify-center shrink-0">
-                <span className="text-xs font-semibold text-slate-200 leading-none">
+              <div className="w-12 h-12 rounded-lg bg-slate-700/80 flex flex-col items-center justify-center shrink-0">
+                <span className="text-base font-semibold text-slate-200 leading-none">
                   {formatShortDate(r.date)}
                 </span>
-                <span className="text-[10px] text-slate-400 leading-none mt-0.5">
+                <span className="text-xs text-slate-400 leading-none mt-1">
                   {formatWeekday(r.date)}
                 </span>
               </div>
@@ -352,16 +352,16 @@ export default function Home() {
 
               {/* Edit / Delete (own records only) */}
               {r.person === savedName && (
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => handleEdit(r)}
-                    className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors active:scale-95"
+                    className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-lg text-slate-300 rounded-lg transition-colors active:scale-95"
                   >
                     ✎
                   </button>
                   <button
                     onClick={() => handleDelete(r.id)}
-                    className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 rounded-lg transition-colors active:scale-95"
+                    className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-rose-500/20 text-lg text-slate-400 hover:text-rose-400 rounded-lg transition-colors active:scale-95"
                   >
                     ✕
                   </button>
