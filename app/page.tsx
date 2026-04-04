@@ -121,10 +121,14 @@ export default function Home() {
   // ─── Add / update record ──────────────────────────
   const handleAddRecord = useCallback(async () => {
     if (!roomId || !savedName) return;
-    const docId = editingRecord
-      ? editingRecord.id
-      : `${formDate}_${savedName}`;
-    await setDoc(doc(db, "rooms", roomId, "records", docId), {
+    const newDocId = `${formDate}_${savedName}`;
+
+    // If editing and date changed, delete old record first
+    if (editingRecord && editingRecord.id !== newDocId) {
+      await deleteDoc(doc(db, "rooms", roomId, "records", editingRecord.id));
+    }
+
+    await setDoc(doc(db, "rooms", roomId, "records", newDocId), {
       date: formDate,
       bedtime: formBedtime,
       wakeTime: formWakeTime,
@@ -360,14 +364,12 @@ export default function Home() {
                   {/* Edit / Delete (own records only) */}
                   {r.person === savedName && (
                     <div className="flex items-center gap-1 shrink-0">
-                      {!r.wakeTime && (
-                        <button
-                          onClick={() => handleEdit(r)}
-                          className="text-indigo-400 hover:text-indigo-300 text-xs px-2 py-1 rounded-lg bg-indigo-500/10 transition-colors"
-                        >
-                          補填
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleEdit(r)}
+                        className="text-slate-500 hover:text-indigo-400 text-sm p-1 transition-colors"
+                      >
+                        ✎
+                      </button>
                       <button
                         onClick={() => handleDelete(r.id)}
                         className="text-slate-600 hover:text-rose-400 text-sm p-1 transition-colors"
@@ -406,7 +408,7 @@ export default function Home() {
         <div className="border-t border-slate-800 bg-slate-900 px-5 py-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg">
-              {editingRecord ? "補填起床時間" : "新增紀錄"}
+              {editingRecord ? "編輯紀錄" : "新增紀錄"}
             </h3>
             <button
               onClick={() => {
