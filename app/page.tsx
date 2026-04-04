@@ -54,7 +54,7 @@ export default function Home() {
   // Notification states
   const [showBanner, setShowBanner] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
-  const [notifPermission, setNotifPermission] = useState<string>("default");
+  const [notifDismissed, setNotifDismissed] = useState(false);
 
   // ─── Init: load room & name ──────────────────────
   useEffect(() => {
@@ -67,8 +67,9 @@ export default function Home() {
     }
     // Register service worker
     registerSW();
-    if ("Notification" in window) {
-      setNotifPermission(Notification.permission);
+    // Check if notification prompt was already dismissed
+    if (localStorage.getItem("zotracker-notif-dismissed")) {
+      setNotifDismissed(true);
     }
   }, []);
 
@@ -84,8 +85,9 @@ export default function Home() {
 
   // ─── Request notification permission ──────────────
   const handleEnableNotif = useCallback(async () => {
-    const granted = await requestNotificationPermission();
-    setNotifPermission(granted ? "granted" : "denied");
+    await requestNotificationPermission();
+    setNotifDismissed(true);
+    localStorage.setItem("zotracker-notif-dismissed", "1");
   }, []);
 
   // ─── Firestore listener ──────────────────────────
@@ -287,7 +289,7 @@ export default function Home() {
       )}
 
       {/* Notification permission prompt */}
-      {notifPermission === "default" && savedName && (
+      {!notifDismissed && savedName && (
         <div className="mx-5 mt-4 bg-indigo-500/10 border border-indigo-500/30 rounded-2xl px-4 py-3 flex items-center gap-3">
           <span className="text-xl shrink-0">🔔</span>
           <p className="text-indigo-300 text-sm flex-1">
