@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   collection,
@@ -65,6 +65,14 @@ export default function Home() {
     text: string;
   } | null>(null);
   const [showLatestMessage, setShowLatestMessage] = useState(false);
+
+  // Pull-to-refresh state
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef<number | null>(null);
+  const mainScrollRef = useRef<HTMLElement>(null);
+  const PULL_THRESHOLD = 60;
+  const MAX_PULL = 100;
 
   // ─── Init: load room & name ──────────────────────
   useEffect(() => {
@@ -139,6 +147,36 @@ export default function Home() {
     sessionStorage.setItem("zotracker-update-complete", "1");
     setTimeout(() => window.location.reload(), 800);
   }, []);
+
+  // ─── Pull-to-refresh handlers ─────────────────────
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (mainScrollRef.current && mainScrollRef.current.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStartY.current === null || isRefreshing) return;
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0 && mainScrollRef.current?.scrollTop === 0) {
+      // Resistance: diminishing return as user pulls further
+      const resisted = Math.min(delta * 0.5, MAX_PULL);
+      setPullDistance(resisted);
+    }
+  }, [isRefreshing]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchStartY.current === null) return;
+    touchStartY.current = null;
+    if (pullDistance >= PULL_THRESHOLD) {
+      setIsRefreshing(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 600);
+    } else {
+      setPullDistance(0);
+    }
+  }, [pullDistance]);
 
   // ─── Check update (from settings) ─────────────────
   const handleCheckUpdate = useCallback(() => {
@@ -482,13 +520,13 @@ export default function Home() {
   // ═══════════════════════════════════════════════════
   return (
     <div className="flex flex-1 flex-col max-w-lg mx-auto w-full">
-      {/* Update toast */}
+      {/* Update toast (centered) */}
       {toastMessage && (
         <div
-          className={`fixed top-0 left-1/2 -translate-x-1/2 z-[60] mt-4 rounded-2xl px-5 py-3 text-sm font-medium shadow-lg ${
+          className={`fixed top-1/2 left-1/2 z-[60] -translate-x-1/2 -translate-y-1/2 rounded-2xl px-6 py-4 text-base font-medium shadow-2xl animate-[fadeInScale_0.2s_ease-out] ${
             toastMessage.type === "updating"
-              ? "bg-indigo-500/20 border border-indigo-500/40 text-indigo-200"
-              : "bg-emerald-500/20 border border-emerald-500/40 text-emerald-200"
+              ? "bg-indigo-500/95 border border-indigo-400/60 text-white"
+              : "bg-emerald-500/95 border border-emerald-400/60 text-white"
           }`}
         >
           {toastMessage.text}
@@ -598,7 +636,39 @@ export default function Home() {
       )}
 
       {/* Record list */}
-      <main className="flex-1 overflow-y-auto no-scrollbar px-5 py-3">
+      {/* Pull-to-refresh spinner */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center justify-center pointer-events-none"
+          style={{
+            top: isRefreshing ? 20 : Math.max(0, pullDistance - 40),
+            opacity: isRefreshing ? 1 : Math.min(pullDistance / PULL_THRESHOLD, 1),
+          }}
+        >
+          <div
+            className={`w-9 h-9 rounded-full border-2 border-slate-600 border-t-indigo-400 ${
+              isRefreshing ? "animate-[spin_0.8s_linear_infinite]" : ""
+            }`}
+            style={{
+              transform: isRefreshing
+                ? undefined
+                : `rotate(${Math.min(pullDistance * 3, 360)}deg)`,
+            }}
+          />
+        </div>
+      )}
+
+      <main
+        ref={mainScrollRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="flex-1 overflow-y-auto no-scrollbar px-5 py-3 relative"
+        style={{
+          transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined,
+          transition: touchStartY.current === null ? "transform 0.2s ease-out" : undefined,
+        }}
+      >
         {records.length === 0 && (
           <div className="text-center text-slate-500 mt-20">
             <div className="text-4xl mb-3">📝</div>
