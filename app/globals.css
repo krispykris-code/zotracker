@@ -89,3 +89,13 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* iOS-style spinner: 12 tick lines fading in sequence */
+@keyframes iosSpinnerFade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}

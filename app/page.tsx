@@ -636,25 +636,44 @@ export default function Home() {
       )}
 
       {/* Record list */}
-      {/* Pull-to-refresh spinner */}
+      {/* Pull-to-refresh spinner (iOS style) */}
       {(pullDistance > 0 || isRefreshing) && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 z-20 flex items-center justify-center pointer-events-none"
+          className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none"
           style={{
             top: isRefreshing ? 20 : Math.max(0, pullDistance - 40),
-            opacity: isRefreshing ? 1 : Math.min(pullDistance / PULL_THRESHOLD, 1),
           }}
         >
           <div
-            className={`w-9 h-9 rounded-full border-2 border-slate-600 border-t-indigo-400 ${
-              isRefreshing ? "animate-[spin_0.8s_linear_infinite]" : ""
+            className={`relative w-8 h-8 ${
+              isRefreshing ? "animate-[spin_0.9s_steps(12)_infinite]" : ""
             }`}
             style={{
               transform: isRefreshing
                 ? undefined
-                : `rotate(${Math.min(pullDistance * 3, 360)}deg)`,
+                : `rotate(${Math.min((pullDistance / PULL_THRESHOLD) * 360, 360)}deg)`,
             }}
-          />
+          >
+            {Array.from({ length: 12 }).map((_, i) => {
+              const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
+              const tickVisible = isRefreshing || (i / 12) < pullProgress;
+              return (
+                <div
+                  key={i}
+                  className="absolute left-1/2 top-0 w-[2px] h-[7px] -translate-x-1/2 rounded-full bg-slate-300"
+                  style={{
+                    transformOrigin: "50% 16px",
+                    transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                    opacity: tickVisible ? 1 : 0.15,
+                    animation: isRefreshing
+                      ? `iosSpinnerFade 0.9s linear infinite`
+                      : undefined,
+                    animationDelay: isRefreshing ? `${-i * 0.075}s` : undefined,
+                  }}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
