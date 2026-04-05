@@ -455,22 +455,28 @@ export default function Home() {
             Room: {roomId} · {savedName}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
+          <Link
+            href={`/calendar?room=${roomId}`}
+            className="bg-slate-800 hover:bg-slate-700 text-base px-3 py-2 rounded-xl transition-colors active:scale-95"
+          >
+            📅
+          </Link>
           <Link
             href={`/stats?room=${roomId}`}
-            className="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-xl transition-colors active:scale-95"
+            className="bg-slate-800 hover:bg-slate-700 text-base px-3 py-2 rounded-xl transition-colors active:scale-95"
           >
-            📊 統計
+            📊
           </Link>
           <button
             onClick={handleShare}
-            className="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-xl transition-colors active:scale-95"
+            className="bg-slate-800 hover:bg-slate-700 text-base px-3 py-2 rounded-xl transition-colors active:scale-95"
           >
-            邀請朋友
+            🔗
           </button>
           <button
             onClick={() => setShowSettings(true)}
-            className="bg-slate-800 hover:bg-slate-700 text-sm px-3 py-2 rounded-xl transition-colors active:scale-95"
+            className="bg-slate-800 hover:bg-slate-700 text-base px-3 py-2 rounded-xl transition-colors active:scale-95"
           >
             ⚙️
           </button>
