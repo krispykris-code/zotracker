@@ -27,7 +27,7 @@ import {
   getYesterdaySleep,
   scheduleReminder,
 } from "@/lib/notifications";
-import { APP_VERSION } from "@/lib/version";
+import { APP_VERSION, APP_LAST_UPDATED } from "@/lib/version";
 
 // ─── Room ID from URL ────────────────────────────────
 function getRoomId(): string | null {
@@ -58,8 +58,13 @@ export default function Home() {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [notifDismissed, setNotifDismissed] = useState(false);
 
-  // Update banner
+  // Update banner & toast
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{
+    type: "updating" | "complete";
+    text: string;
+  } | null>(null);
+  const [showLatestMessage, setShowLatestMessage] = useState(false);
 
   // ─── Init: load room & name ──────────────────────
   useEffect(() => {
@@ -103,15 +108,50 @@ export default function Home() {
         localStorage.setItem("zotracker-version", APP_VERSION);
       }
     } else if (storedVersion !== APP_VERSION) {
-      // Outdated → show update banner
+      // Outdated → show update banner AND auto-update after delay
       setShowUpdateBanner(true);
+      const autoUpdateTimer = setTimeout(() => {
+        setToastMessage({ type: "updating", text: "🔄 更新中..." });
+        setShowUpdateBanner(false);
+        localStorage.setItem("zotracker-version", APP_VERSION);
+        sessionStorage.setItem("zotracker-update-complete", "1");
+        setTimeout(() => window.location.reload(), 800);
+      }, 4000);
+      // Store timer globally so dismiss button can cancel it
+      (window as unknown as { __autoUpdateTimer?: ReturnType<typeof setTimeout> }).__autoUpdateTimer = autoUpdateTimer;
+    }
+    // Check if we just finished an update (from previous reload)
+    if (sessionStorage.getItem("zotracker-update-complete")) {
+      sessionStorage.removeItem("zotracker-update-complete");
+      setToastMessage({ type: "complete", text: "✓ 更新完成！" });
+      setTimeout(() => setToastMessage(null), 3000);
     }
   }, []);
 
   // ─── Update app (reload) ──────────────────────────
   const handleUpdateApp = useCallback(() => {
+    // Clear auto-update timer if running
+    const timer = (window as unknown as { __autoUpdateTimer?: ReturnType<typeof setTimeout> }).__autoUpdateTimer;
+    if (timer) clearTimeout(timer);
+    setToastMessage({ type: "updating", text: "🔄 更新中..." });
+    setShowUpdateBanner(false);
     localStorage.setItem("zotracker-version", APP_VERSION);
-    window.location.reload();
+    sessionStorage.setItem("zotracker-update-complete", "1");
+    setTimeout(() => window.location.reload(), 800);
+  }, []);
+
+  // ─── Check update (from settings) ─────────────────
+  const handleCheckUpdate = useCallback(() => {
+    const storedVersion = localStorage.getItem("zotracker-version");
+    if (storedVersion === APP_VERSION) {
+      setShowLatestMessage(true);
+      setTimeout(() => setShowLatestMessage(false), 3000);
+    } else {
+      setToastMessage({ type: "updating", text: "🔄 更新中..." });
+      localStorage.setItem("zotracker-version", APP_VERSION);
+      sessionStorage.setItem("zotracker-update-complete", "1");
+      setTimeout(() => window.location.reload(), 800);
+    }
   }, []);
 
   // ─── Check yesterday's sleep & schedule reminder ──
@@ -442,6 +482,19 @@ export default function Home() {
   // ═══════════════════════════════════════════════════
   return (
     <div className="flex flex-1 flex-col max-w-lg mx-auto w-full">
+      {/* Update toast */}
+      {toastMessage && (
+        <div
+          className={`fixed top-0 left-1/2 -translate-x-1/2 z-[60] mt-4 rounded-2xl px-5 py-3 text-sm font-medium shadow-lg ${
+            toastMessage.type === "updating"
+              ? "bg-indigo-500/20 border border-indigo-500/40 text-indigo-200"
+              : "bg-emerald-500/20 border border-emerald-500/40 text-emerald-200"
+          }`}
+        >
+          {toastMessage.text}
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
         <div>
@@ -495,7 +548,11 @@ export default function Home() {
             立即更新
           </button>
           <button
-            onClick={() => setShowUpdateBanner(false)}
+            onClick={() => {
+              const timer = (window as unknown as { __autoUpdateTimer?: ReturnType<typeof setTimeout> }).__autoUpdateTimer;
+              if (timer) clearTimeout(timer);
+              setShowUpdateBanner(false);
+            }}
             className="text-emerald-300/50 hover:text-emerald-300 text-sm shrink-0"
           >
             ✕
@@ -777,6 +834,32 @@ export default function Home() {
                 <p className="text-sm text-slate-400 mb-4">
                   房間 ID：{roomId}
                 </p>
+
+                {/* Divider */}
+                <div className="border-t border-slate-800 my-4" />
+
+                {/* Version info */}
+                <div className="text-sm text-slate-400 space-y-1 mb-3">
+                  <div>Version: {APP_VERSION}</div>
+                  <div>Last Updated: {APP_LAST_UPDATED}</div>
+                </div>
+
+                <button
+                  onClick={handleCheckUpdate}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-xl transition-colors active:scale-95 mb-2"
+                >
+                  檢查更新
+                </button>
+
+                {showLatestMessage && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm text-center py-2 rounded-xl mb-3">
+                    ✓ 目前已經是最新版本
+                  </div>
+                )}
+
+                {/* Divider */}
+                <div className="border-t border-slate-800 my-4" />
+
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
                   className="w-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold py-3 rounded-xl transition-colors active:scale-95"

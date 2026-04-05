@@ -1,3 +1,4 @@
-// Bump this version string each time there's a user-facing update
-// that needs to be communicated to existing users.
-export const APP_VERSION = "1.1";
+// Bump APP_VERSION each time there's a user-facing update.
+// Update APP_LAST_UPDATED to the release date (YYYY-MM-DD).
+export const APP_VERSION = "1.2";
+export const APP_LAST_UPDATED = "2026-04-06";
