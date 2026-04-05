@@ -646,7 +646,7 @@ export default function Home() {
         >
           <div
             className={`relative w-8 h-8 ${
-              isRefreshing ? "animate-[spin_0.9s_steps(12)_infinite]" : ""
+              isRefreshing ? "animate-[spin_1.2s_steps(12)_infinite]" : ""
             }`}
             style={{
               transform: isRefreshing
@@ -666,9 +666,9 @@ export default function Home() {
                     transform: `translateX(-50%) rotate(${i * 30}deg)`,
                     opacity: tickVisible ? 1 : 0.15,
                     animation: isRefreshing
-                      ? `iosSpinnerFade 0.9s linear infinite`
+                      ? `iosSpinnerFade 1.2s linear infinite`
                       : undefined,
-                    animationDelay: isRefreshing ? `${-i * 0.075}s` : undefined,
+                    animationDelay: isRefreshing ? `${-i * 0.1}s` : undefined,
                   }}
                 />
               );
