@@ -50,6 +50,7 @@ export default function Home() {
   const [formDate, setFormDate] = useState("");
   const [formBedtime, setFormBedtime] = useState("");
   const [formWakeTime, setFormWakeTime] = useState("");
+  const [formIsMc, setFormIsMc] = useState(false);
 
   // Notification states
   const [showBanner, setShowBanner] = useState(false);
@@ -189,10 +190,11 @@ export default function Home() {
       wakeTime: formWakeTime,
       person: savedName,
       createdAt: editingRecord?.createdAt ?? Date.now(),
+      isMc: formIsMc,
     });
     setShowForm(false);
     setEditingRecord(null);
-  }, [roomId, savedName, formDate, formBedtime, formWakeTime, editingRecord]);
+  }, [roomId, savedName, formDate, formBedtime, formWakeTime, formIsMc, editingRecord]);
 
   // ─── Edit record (fill in wake time) ─────────────
   const handleEdit = useCallback((r: SleepRecord) => {
@@ -200,6 +202,7 @@ export default function Home() {
     setFormDate(r.date);
     setFormBedtime(r.bedtime);
     setFormWakeTime(r.wakeTime);
+    setFormIsMc(r.isMc ?? false);
     setShowForm(true);
   }, []);
 
@@ -513,6 +516,9 @@ export default function Home() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <span className="text-lg font-medium truncate">{r.person}</span>
+                  {r.isMc && (
+                    <span className="text-rose-500 text-lg leading-none">●</span>
+                  )}
                   {r.wakeTime ? (
                     <span
                       className={`text-lg font-semibold ${durationColor(r.bedtime, r.wakeTime)}`}
@@ -561,6 +567,7 @@ export default function Home() {
             setFormDate(defaults.date);
             setFormBedtime(defaults.bedtime);
             setFormWakeTime(defaults.wakeTime);
+            setFormIsMc(false);
             setEditingRecord(null);
             setShowForm(true);
           }}
@@ -631,6 +638,34 @@ export default function Home() {
                   />
                 </label>
               </div>
+
+              {/* MC checkbox */}
+              <button
+                type="button"
+                onClick={() => setFormIsMc((v) => !v)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors active:scale-[0.98] ${
+                  formIsMc
+                    ? "bg-rose-500/10 border-rose-500/50"
+                    : "bg-slate-800 border-slate-700 hover:border-slate-600"
+                }`}
+              >
+                <span
+                  className={`w-6 h-6 rounded-md flex items-center justify-center text-sm ${
+                    formIsMc
+                      ? "bg-rose-500 text-white"
+                      : "border border-slate-600"
+                  }`}
+                >
+                  {formIsMc && "●"}
+                </span>
+                <span
+                  className={`text-base ${
+                    formIsMc ? "text-rose-300" : "text-slate-300"
+                  }`}
+                >
+                  MC 生理期
+                </span>
+              </button>
 
               {/* Preview */}
               <div className="text-center py-2">

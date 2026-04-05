@@ -5,4 +5,5 @@ export interface SleepRecord {
   wakeTime: string; // HH:mm
   person: string;
   createdAt: number;
+  isMc?: boolean; // menstrual cycle marker
 }
