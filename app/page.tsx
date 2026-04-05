@@ -27,6 +27,7 @@ import {
   getYesterdaySleep,
   scheduleReminder,
 } from "@/lib/notifications";
+import { APP_VERSION } from "@/lib/version";
 
 // ─── Room ID from URL ────────────────────────────────
 function getRoomId(): string | null {
@@ -57,6 +58,9 @@ export default function Home() {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [notifDismissed, setNotifDismissed] = useState(false);
 
+  // Update banner
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+
   // ─── Init: load room & name ──────────────────────
   useEffect(() => {
     let rid = getRoomId();
@@ -84,6 +88,30 @@ export default function Home() {
     if (localStorage.getItem("zotracker-notif-dismissed")) {
       setNotifDismissed(true);
     }
+    // Version check: show update banner if existing user has older version
+    const storedVersion = localStorage.getItem("zotracker-version");
+    const hasUserData =
+      localStorage.getItem("zotracker-name") ||
+      localStorage.getItem("zotracker-room");
+    if (storedVersion === null) {
+      // First time or existing user without version stored
+      if (hasUserData) {
+        // Existing user → show update banner
+        setShowUpdateBanner(true);
+      } else {
+        // Brand new user → save current version silently
+        localStorage.setItem("zotracker-version", APP_VERSION);
+      }
+    } else if (storedVersion !== APP_VERSION) {
+      // Outdated → show update banner
+      setShowUpdateBanner(true);
+    }
+  }, []);
+
+  // ─── Update app (reload) ──────────────────────────
+  const handleUpdateApp = useCallback(() => {
+    localStorage.setItem("zotracker-version", APP_VERSION);
+    window.location.reload();
   }, []);
 
   // ─── Check yesterday's sleep & schedule reminder ──
@@ -448,6 +476,26 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      {/* Update banner */}
+      {showUpdateBanner && (
+        <div className="mx-5 mt-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-4 py-3 flex items-center gap-3">
+          <span className="text-xl shrink-0">🆕</span>
+          <p className="text-emerald-300 text-sm flex-1">有新功能可用</p>
+          <button
+            onClick={handleUpdateApp}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg shrink-0 transition-colors active:scale-95"
+          >
+            立即更新
+          </button>
+          <button
+            onClick={() => setShowUpdateBanner(false)}
+            className="text-emerald-300/50 hover:text-emerald-300 text-sm shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Sleep reminder banner */}
       {showBanner && !bannerDismissed && (
