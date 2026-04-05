@@ -640,7 +640,7 @@ export default function Home() {
       <div
         className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none"
         style={{
-          top: isRefreshing ? 20 : Math.max(-40, pullDistance - 40),
+          top: isRefreshing ? 36 : Math.max(-50, pullDistance - 50),
           opacity: isRefreshing
             ? 1
             : Math.min(pullDistance / PULL_THRESHOLD, 1),
@@ -649,9 +649,9 @@ export default function Home() {
       >
         <div className={isRefreshing ? "animate-[spin_1s_linear_infinite]" : ""}>
           <svg
-            width="28"
-            height="28"
-            viewBox="0 0 28 28"
+            width="36"
+            height="36"
+            viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2.5"
@@ -659,8 +659,8 @@ export default function Home() {
             strokeLinejoin="round"
             className="text-slate-200"
           >
-            <path d="M 23 14 A 9 9 0 1 1 14 5" />
-            <path d="M 14 2 L 14 8 L 20 8" />
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
           </svg>
         </div>
       </div>
