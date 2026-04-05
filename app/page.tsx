@@ -636,39 +636,34 @@ export default function Home() {
       )}
 
       {/* Record list */}
-      {/* Pull-to-refresh spinner (iOS style) */}
-      {(pullDistance > 0 || isRefreshing) && (
-        <div
-          className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none"
-          style={{
-            top: isRefreshing ? 20 : Math.max(0, pullDistance - 40),
-            opacity: isRefreshing
-              ? 1
-              : Math.min(pullDistance / PULL_THRESHOLD, 1),
-          }}
-        >
-          <div
-            className={`relative w-8 h-8 ${
-              isRefreshing ? "animate-[spin_1s_steps(12)_infinite]" : ""
-            }`}
+      {/* Pull-to-refresh spinner (circular arrow) */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+        style={{
+          top: isRefreshing ? 20 : Math.max(-40, pullDistance - 40),
+          opacity: isRefreshing
+            ? 1
+            : Math.min(pullDistance / PULL_THRESHOLD, 1),
+          willChange: "opacity",
+        }}
+      >
+        <div className={isRefreshing ? "animate-[spin_1s_linear_infinite]" : ""}>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 28 28"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-slate-200"
           >
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute left-1/2 top-0 w-[2px] h-[6px] -translate-x-1/2 rounded-full bg-slate-200"
-                style={{
-                  transformOrigin: "50% 16px",
-                  transform: `translateX(-50%) rotate(${i * 30}deg)`,
-                  animation: isRefreshing
-                    ? `iosSpinnerFade 1s linear infinite`
-                    : undefined,
-                  animationDelay: isRefreshing ? `${-i * 0.083}s` : undefined,
-                }}
-              />
-            ))}
-          </div>
+            <path d="M 23 14 A 9 9 0 1 1 14 5" />
+            <path d="M 14 2 L 14 8 L 20 8" />
+          </svg>
         </div>
-      )}
+      </div>
 
       <main
         ref={mainScrollRef}
