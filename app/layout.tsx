@@ -44,7 +44,7 @@ export default function RootLayout({
       lang="zh-TW"
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="h-dvh flex flex-col">{children}</body>
     </html>
   );
 }
