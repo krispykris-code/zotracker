@@ -170,7 +170,7 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col max-w-lg mx-auto w-full">
+    <div className="flex flex-1 min-h-0 flex-col max-w-lg mx-auto w-full">
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
         <div>
@@ -185,7 +185,7 @@ export default function StatsPage() {
         </Link>
       </header>
 
-      <main className="flex-1 overflow-y-auto no-scrollbar px-5 py-4">
+      <main className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-5 py-4">
         {/* Range selector */}
         <div className="flex gap-2 mb-4">
           {(["7d", "30d", "all"] as Range[]).map((r) => (

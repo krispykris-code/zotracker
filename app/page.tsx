@@ -519,7 +519,7 @@ export default function Home() {
   // RENDER: Main tracker view
   // ═══════════════════════════════════════════════════
   return (
-    <div className="flex flex-1 flex-col max-w-lg mx-auto w-full">
+    <div className="flex flex-1 min-h-0 flex-col max-w-lg mx-auto w-full">
       {/* Update toast (centered) */}
       {toastMessage && (
         <div
@@ -670,7 +670,7 @@ export default function Home() {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="flex-1 overflow-y-auto no-scrollbar px-5 py-3 relative"
+        className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-5 py-3 relative"
         style={{
           transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined,
           transition: touchStartY.current === null ? "transform 0.2s ease-out" : undefined,
