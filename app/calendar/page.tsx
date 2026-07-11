@@ -5,19 +5,10 @@ import Link from "next/link";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { SleepRecord } from "@/lib/types";
-import {
-  getMonthGrid,
-  getRecentMonths,
-  getSleepBgColor,
-  getSleepTextColor,
-  dateToStr,
-  isSameDay,
-} from "@/lib/calendar";
-
-function getRoomId(): string | null {
-  if (typeof window === "undefined") return null;
-  return new URLSearchParams(window.location.search).get("room");
-}
+import { getMonthGrid, getRecentMonths } from "@/lib/calendar";
+import { getSleepBgColor, getSleepTextColor } from "@/lib/sleepQuality";
+import { dateToStr, isSameDay } from "@/lib/dates";
+import { getRoomId } from "@/lib/room";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 

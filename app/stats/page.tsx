@@ -15,41 +15,18 @@ import {
 } from "recharts";
 import { db } from "@/lib/firebase";
 import { SleepRecord } from "@/lib/types";
+import { calcHours, calcDuration, filterComplete } from "@/lib/sleep";
+import { hoursColor } from "@/lib/sleepQuality";
 import {
-  calcHours,
-  calcDuration,
   formatShortDate,
-  getPersonChartColor,
-} from "@/lib/sleep";
+  daysAgo,
+  getWeekLabel,
+  getMonthLabel,
+} from "@/lib/dates";
+import { getPersonChartColor } from "@/lib/personColors";
+import { getRoomId } from "@/lib/room";
 
 type Range = "7d" | "30d" | "all";
-
-function getRoomId(): string | null {
-  if (typeof window === "undefined") return null;
-  return new URLSearchParams(window.location.search).get("room");
-}
-
-function daysAgo(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toLocaleDateString("sv-SE");
-}
-
-// ─── Weekly / Monthly averages ───────────────────────
-function getWeekLabel(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  // Find Monday of that week
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const mon = new Date(d);
-  mon.setDate(diff);
-  return `${mon.getMonth() + 1}/${mon.getDate()}`;
-}
-
-function getMonthLabel(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return `${d.getFullYear()}/${d.getMonth() + 1}`;
-}
 
 export default function StatsPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -86,7 +63,9 @@ export default function StatsPage() {
     if (range === "7d") cutoff = daysAgo(7);
     else if (range === "30d") cutoff = daysAgo(30);
 
-    return records
+    // filterComplete drops pending-wake records — their duration is NaN
+    // and would poison every average below.
+    return filterComplete(records)
       .filter((r) => (cutoff ? r.date >= cutoff : true))
       .filter((r) => (selectedPerson ? r.person === selectedPerson : true));
   }, [records, range, selectedPerson]);
@@ -281,7 +260,7 @@ export default function StatsPage() {
                       borderRadius: 12,
                       color: "#fff",
                     }}
-                    formatter={(value) => [`${value}h`, "睡眠"]}
+                    formatter={(value, name) => [`${value}h`, String(name)]}
                   />
                   <ReferenceLine
                     y={7}
@@ -343,15 +322,7 @@ export default function StatsPage() {
                     <span className="text-xs text-slate-500">
                       {w.count} 筆
                     </span>
-                    <span
-                      className={`font-semibold ${
-                        w.avg >= 7
-                          ? "text-emerald-400"
-                          : w.avg >= 6
-                            ? "text-amber-300"
-                            : "text-rose-400"
-                      }`}
-                    >
+                    <span className={`font-semibold ${hoursColor(w.avg)}`}>
                       {w.avg}h
                     </span>
                   </div>
@@ -378,15 +349,7 @@ export default function StatsPage() {
                     <span className="text-xs text-slate-500">
                       {m.count} 筆
                     </span>
-                    <span
-                      className={`font-semibold ${
-                        m.avg >= 7
-                          ? "text-emerald-400"
-                          : m.avg >= 6
-                            ? "text-amber-300"
-                            : "text-rose-400"
-                      }`}
-                    >
+                    <span className={`font-semibold ${hoursColor(m.avg)}`}>
                       {m.avg}h
                     </span>
                   </div>

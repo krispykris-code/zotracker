@@ -14,13 +14,10 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { SleepRecord } from "@/lib/types";
-import {
-  calcDuration,
-  durationColor,
-  formatShortDate,
-  formatWeekday,
-  smartDefaults,
-} from "@/lib/sleep";
+import { calcDuration, smartDefaults } from "@/lib/sleep";
+import { durationColor } from "@/lib/sleepQuality";
+import { formatShortDate, formatWeekday } from "@/lib/dates";
+import { getRoomId } from "@/lib/room";
 import {
   registerSW,
   requestNotificationPermission,
@@ -28,13 +25,6 @@ import {
   scheduleReminder,
 } from "@/lib/notifications";
 import { APP_VERSION, APP_LAST_UPDATED } from "@/lib/version";
-
-// ─── Room ID from URL ────────────────────────────────
-function getRoomId(): string | null {
-  if (typeof window === "undefined") return null;
-  const params = new URLSearchParams(window.location.search);
-  return params.get("room");
-}
 
 // ═════════════════════════════════════════════════════
 // Main Component

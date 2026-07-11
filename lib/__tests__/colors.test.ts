@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { durationColor } from "../sleep";
-import { getSleepBgColor, getSleepTextColor } from "../calendar";
+import {
+  durationColor,
+  hoursColor,
+  getSleepBgColor,
+  getSleepTextColor,
+} from "../sleepQuality";
 
 // Threshold contract: >= 420 min (7h) = green, >= 360 min (6h) = amber, else red.
 // These boundaries drive the record list, stats page, and calendar tinting.
@@ -20,6 +24,15 @@ describe("durationColor", () => {
     // Locked current behavior: calcMinutes("23:00","") is NaN, every
     // comparison is false, so the fallback branch returns rose.
     expect(durationColor("23:00", "")).toBe("text-rose-400");
+  });
+});
+
+describe("hoursColor", () => {
+  it("matches durationColor thresholds on the hours scale", () => {
+    expect(hoursColor(7)).toBe("text-emerald-400");
+    expect(hoursColor(6.9)).toBe("text-amber-300");
+    expect(hoursColor(6)).toBe("text-amber-300");
+    expect(hoursColor(5.9)).toBe("text-rose-400");
   });
 });
 

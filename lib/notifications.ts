@@ -1,5 +1,6 @@
 import { SleepRecord } from "./types";
 import { calcMinutes } from "./sleep";
+import { yesterdayStr } from "./dates";
 
 // ─── Service Worker Registration ─────────────────────
 export async function registerSW(): Promise<ServiceWorkerRegistration | null> {
@@ -26,12 +27,6 @@ export function canNotify(): boolean {
 }
 
 // ─── Check yesterday's sleep ─────────────────────────
-function yesterdayStr(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toLocaleDateString("sv-SE");
-}
-
 export function getYesterdaySleep(
   records: SleepRecord[],
   person: string

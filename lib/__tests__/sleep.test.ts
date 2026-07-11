@@ -4,10 +4,11 @@ import {
   calcDuration,
   calcHours,
   smartDefaults,
-  timeStr,
-  todayStr,
-  getPersonChartColor,
+  filterComplete,
 } from "../sleep";
+import { timeStr, todayStr } from "../dates";
+import { getPersonChartColor } from "../personColors";
+import type { SleepRecord } from "../types";
 
 describe("calcMinutes", () => {
   it("computes same-day duration", () => {
@@ -105,6 +106,27 @@ describe("timeStr / todayStr", () => {
   it("todayStr returns local YYYY-MM-DD", () => {
     vi.setSystemTime(new Date(2026, 6, 11, 23, 30));
     expect(todayStr()).toBe("2026-07-11");
+  });
+});
+
+describe("filterComplete", () => {
+  const base: SleepRecord = {
+    id: "2026-07-10_淳予",
+    date: "2026-07-10",
+    bedtime: "23:00",
+    wakeTime: "07:00",
+    person: "淳予",
+    createdAt: 0,
+  };
+
+  it("drops pending-wake records so averages cannot become NaN", () => {
+    const records = [base, { ...base, id: "b", wakeTime: "" }];
+    expect(filterComplete(records)).toEqual([base]);
+  });
+
+  it("keeps complete records untouched", () => {
+    expect(filterComplete([base])).toEqual([base]);
+    expect(filterComplete([])).toEqual([]);
   });
 });
 
