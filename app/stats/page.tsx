@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import {
   LineChart,
   Line,
@@ -13,8 +12,6 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { db } from "@/lib/firebase";
-import { SleepRecord } from "@/lib/types";
 import { calcHours, calcDuration, filterComplete } from "@/lib/sleep";
 import { hoursColor } from "@/lib/sleepQuality";
 import {
@@ -24,33 +21,18 @@ import {
   getMonthLabel,
 } from "@/lib/dates";
 import { getPersonChartColor } from "@/lib/personColors";
-import { getRoomId } from "@/lib/room";
+import { useRoomId } from "@/hooks/useRoomId";
+import { useRoomRecords } from "@/hooks/useRoomRecords";
+import { AppHeader } from "@/components/AppHeader";
+import { PersonFilter } from "@/components/PersonFilter";
 
 type Range = "7d" | "30d" | "all";
 
 export default function StatsPage() {
-  const [roomId, setRoomId] = useState<string | null>(null);
-  const [records, setRecords] = useState<SleepRecord[]>([]);
+  const roomId = useRoomId();
+  const { records } = useRoomRecords(roomId, "asc");
   const [range, setRange] = useState<Range>("7d");
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-
-  useEffect(() => {
-    setRoomId(getRoomId());
-  }, []);
-
-  useEffect(() => {
-    if (!roomId) return;
-    const q = query(
-      collection(db, "rooms", roomId, "records"),
-      orderBy("date", "asc")
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setRecords(
-        snap.docs.map((d) => ({ id: d.id, ...d.data() })) as SleepRecord[]
-      );
-    });
-    return () => unsub();
-  }, [roomId]);
 
   // ─── Derived data ──────────────────────────────────
   const persons = useMemo(
@@ -150,19 +132,18 @@ export default function StatsPage() {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col max-w-lg mx-auto w-full">
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-xl font-bold">📊 睡眠統計</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Room: {roomId}</p>
-        </div>
-        <Link
-          href={`/?room=${roomId}`}
-          className="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-xl transition-colors active:scale-95"
-        >
-          ← 返回
-        </Link>
-      </header>
+      <AppHeader
+        title={<h1 className="text-xl font-bold">📊 睡眠統計</h1>}
+        subtitle={`Room: ${roomId}`}
+        actions={
+          <Link
+            href={`/?room=${roomId}`}
+            className="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-xl transition-colors active:scale-95"
+          >
+            ← 返回
+          </Link>
+        }
+      />
 
       <main className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-5 py-4">
         {/* Range selector */}
@@ -184,31 +165,13 @@ export default function StatsPage() {
 
         {/* Person filter */}
         {persons.length > 1 && (
-          <div className="flex gap-2 mb-5 overflow-x-auto no-scrollbar">
-            <button
-              onClick={() => setSelectedPerson(null)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                !selectedPerson
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-800 text-slate-400"
-              }`}
-            >
-              全部
-            </button>
-            {persons.map((p) => (
-              <button
-                key={p}
-                onClick={() => setSelectedPerson(p === selectedPerson ? null : p)}
-                className={`shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                  selectedPerson === p
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-800 text-slate-400"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+          <PersonFilter
+            persons={persons}
+            selected={selectedPerson}
+            onSelect={(p) => setSelectedPerson(p === selectedPerson ? null : p)}
+            onSelectAll={() => setSelectedPerson(null)}
+            className="mb-5"
+          />
         )}
 
         {/* Summary cards */}

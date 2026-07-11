@@ -1,41 +1,26 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { SleepRecord } from "@/lib/types";
 import { getMonthGrid, getRecentMonths } from "@/lib/calendar";
 import { getSleepBgColor, getSleepTextColor } from "@/lib/sleepQuality";
 import { dateToStr, isSameDay } from "@/lib/dates";
-import { getRoomId } from "@/lib/room";
+import { useRoomId } from "@/hooks/useRoomId";
+import { useRoomRecords } from "@/hooks/useRoomRecords";
+import { useLocalStorageValue } from "@/hooks/useLocalStorageValue";
+import { AppHeader } from "@/components/AppHeader";
+import { PersonFilter } from "@/components/PersonFilter";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
 export default function CalendarPage() {
-  const [roomId, setRoomId] = useState<string | null>(null);
-  const [records, setRecords] = useState<SleepRecord[]>([]);
-  const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-
-  useEffect(() => {
-    setRoomId(getRoomId());
-    const savedName = localStorage.getItem("zotracker-name");
-    if (savedName) setSelectedPerson(savedName);
-  }, []);
-
-  useEffect(() => {
-    if (!roomId) return;
-    const q = query(
-      collection(db, "rooms", roomId, "records"),
-      orderBy("date", "asc")
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setRecords(
-        snap.docs.map((d) => ({ id: d.id, ...d.data() })) as SleepRecord[]
-      );
-    });
-    return () => unsub();
-  }, [roomId]);
+  const roomId = useRoomId();
+  const { records } = useRoomRecords(roomId, "asc");
+  const [savedName] = useLocalStorageValue("zotracker-name");
+  // Defaults to the current user; switching chips overrides it.
+  const [personOverride, setPersonOverride] = useState<string | null>(null);
+  const selectedPerson = personOverride ?? savedName;
 
   // ─── Person list ──────────────────────────────────
   const persons = useMemo(
@@ -67,38 +52,28 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-1 min-h-0 flex-col max-w-lg mx-auto w-full">
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-xl font-bold">📅 行事曆</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Room: {roomId}</p>
-        </div>
-        <Link
-          href={`/?room=${roomId}`}
-          className="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-xl transition-colors active:scale-95"
-        >
-          ← 返回
-        </Link>
-      </header>
+      <AppHeader
+        title={<h1 className="text-xl font-bold">📅 行事曆</h1>}
+        subtitle={`Room: ${roomId}`}
+        actions={
+          <Link
+            href={`/?room=${roomId}`}
+            className="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-xl transition-colors active:scale-95"
+          >
+            ← 返回
+          </Link>
+        }
+      />
 
       <main className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-5 py-4">
         {/* Person filter */}
         {persons.length > 0 && (
-          <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
-            {persons.map((p) => (
-              <button
-                key={p}
-                onClick={() => setSelectedPerson(p)}
-                className={`shrink-0 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                  selectedPerson === p
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-800 text-slate-400"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+          <PersonFilter
+            persons={persons}
+            selected={selectedPerson}
+            onSelect={setPersonOverride}
+            className="mb-3"
+          />
         )}
 
         {/* Legend */}
