@@ -1,3 +1,5 @@
+import type { SleepRecord } from "./types";
+
 // ─── Month grid generation ───────────────────────────
 // Returns 42 cells (6 weeks × 7 days) — Sunday to Saturday.
 // Cells outside the given month are null.
@@ -34,4 +36,16 @@ export function getRecentMonths(n: number): { year: number; month: number }[] {
     months.push({ year: d.getFullYear(), month: d.getMonth() });
   }
   return months;
+}
+
+// All records grouped by date — every person, unlike the calendar cell
+// coloring which shows only the filtered person. Powers the day detail sheet.
+export function groupRecordsByDate(
+  records: SleepRecord[]
+): Record<string, SleepRecord[]> {
+  const map: Record<string, SleepRecord[]> = {};
+  for (const r of records) {
+    (map[r.date] ??= []).push(r);
+  }
+  return map;
 }

@@ -3,7 +3,11 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { SleepRecord } from "@/lib/types";
-import { getMonthGrid, getRecentMonths } from "@/lib/calendar";
+import {
+  getMonthGrid,
+  getRecentMonths,
+  groupRecordsByDate,
+} from "@/lib/calendar";
 import { getSleepBgColor, getSleepTextColor } from "@/lib/sleepQuality";
 import { dateToStr, isSameDay } from "@/lib/dates";
 import { useRoomId } from "@/hooks/useRoomId";
@@ -12,6 +16,7 @@ import { useLocalStorageValue } from "@/hooks/useLocalStorageValue";
 import { AppHeader } from "@/components/AppHeader";
 import { PersonFilter } from "@/components/PersonFilter";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { DayDetailSheet } from "@/components/DayDetailSheet";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
@@ -22,6 +27,8 @@ export default function CalendarPage() {
   // Defaults to the current user; switching chips overrides it.
   const [personOverride, setPersonOverride] = useState<string | null>(null);
   const selectedPerson = personOverride ?? savedName;
+  // Tapped day → detail sheet with everyone's records for that date.
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // ─── Person list ──────────────────────────────────
   const persons = useMemo(
@@ -38,6 +45,9 @@ export default function CalendarPage() {
     }
     return map;
   }, [records, selectedPerson]);
+
+  // ─── All records per date (every person) ──────────
+  const allByDate = useMemo(() => groupRecordsByDate(records), [records]);
 
   // ─── Months to display ─────────────────────────────
   const months = useMemo(() => getRecentMonths(3), []);
@@ -146,12 +156,15 @@ export default function CalendarPage() {
                     ? getSleepTextColor(record.bedtime, record.wakeTime)
                     : "text-slate-500";
                   const isToday = isSameDay(date, today);
+                  const dayCount = allByDate[dateStr]?.length ?? 0;
                   return (
-                    <div
+                    <button
                       key={idx}
+                      onClick={() => setSelectedDate(dateStr)}
+                      aria-label={`${month + 1}月${date.getDate()}日，${dayCount} 筆紀錄`}
                       className={`relative aspect-square rounded-lg ${bgColor} ${
                         isToday ? "ring-2 ring-indigo-400" : ""
-                      } flex items-start justify-start p-1`}
+                      } flex items-start justify-start p-1 active:scale-95 transition-transform`}
                     >
                       <span
                         className={`text-sm font-medium ${textColor} leading-none`}
@@ -161,7 +174,7 @@ export default function CalendarPage() {
                       {record?.isMc && (
                         <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -171,6 +184,14 @@ export default function CalendarPage() {
           </>
         )}
       </main>
+
+      {selectedDate && (
+        <DayDetailSheet
+          dateStr={selectedDate}
+          records={allByDate[selectedDate] ?? []}
+          onClose={() => setSelectedDate(null)}
+        />
+      )}
     </div>
   );
 }

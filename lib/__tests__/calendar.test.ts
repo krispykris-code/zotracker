@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { getMonthGrid, getRecentMonths } from "../calendar";
+import { getMonthGrid, getRecentMonths, groupRecordsByDate } from "../calendar";
+import type { SleepRecord } from "../types";
 
 describe("getMonthGrid", () => {
   it("always returns 42 cells (6 weeks × 7 days)", () => {
@@ -31,6 +32,31 @@ describe("getMonthGrid", () => {
 
   it("handles non-leap February (2026 has 28 days)", () => {
     expect(getMonthGrid(2026, 1).filter((c) => c !== null)).toHaveLength(28);
+  });
+});
+
+describe("groupRecordsByDate", () => {
+  const rec = (id: string, date: string, person: string): SleepRecord => ({
+    id,
+    date,
+    bedtime: "23:00",
+    wakeTime: "07:00",
+    person,
+    createdAt: 0,
+  });
+
+  it("keeps every person's record for the same date", () => {
+    const a = rec("a", "2026-07-10", "淳予");
+    const b = rec("b", "2026-07-10", "小明");
+    const c = rec("c", "2026-07-11", "淳予");
+    expect(groupRecordsByDate([a, b, c])).toEqual({
+      "2026-07-10": [a, b],
+      "2026-07-11": [c],
+    });
+  });
+
+  it("returns an empty map for no records", () => {
+    expect(groupRecordsByDate([])).toEqual({});
   });
 });
 
