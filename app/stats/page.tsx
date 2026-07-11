@@ -26,6 +26,7 @@ import { useRoomRecords } from "@/hooks/useRoomRecords";
 import { AppHeader } from "@/components/AppHeader";
 import { PersonFilter } from "@/components/PersonFilter";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { InsightCards } from "@/components/InsightCards";
 
 type Range = "7d" | "30d" | "all";
 
@@ -122,6 +123,11 @@ export default function StatsPage() {
     });
   }, [filteredRecords]);
 
+  // Insights only make sense for one person's records: the explicitly
+  // selected member, or the room's only member.
+  const insightPerson =
+    selectedPerson ?? (persons.length === 1 ? persons[0] : null);
+
   // ═══════════════════════════════════════════════════
   if (!roomId) {
     return (
@@ -203,6 +209,16 @@ export default function StatsPage() {
             )}
           </div>
         </div>
+
+        {/* Personal insights */}
+        {filteredRecords.length > 0 &&
+          (insightPerson ? (
+            <InsightCards records={filteredRecords} />
+          ) : (
+            <p className="text-center text-xs text-slate-400 mb-6">
+              點上方成員名字，查看個人洞察（平均作息、規律性、週末差異）
+            </p>
+          ))}
 
         {/* Trend chart */}
         {chartData.length > 1 && (
