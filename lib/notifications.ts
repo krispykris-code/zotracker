@@ -44,6 +44,11 @@ export function getYesterdaySleep(
 }
 
 // ─── Schedule 11pm reminder via Service Worker ───────
+// KNOWN LIMITATION: the reminder is delivered via setTimeout inside the service
+// worker (see public/sw.js). iOS terminates idle service workers within ~30s,
+// so the 11pm notification usually won't fire unless the app is in the
+// foreground. Reliable delivery would require the Push API + a server.
+// Keeping as-is is a deliberate decision (2026-07).
 export function scheduleReminder(person: string): void {
   if (!canNotify() || !navigator.serviceWorker.controller) return;
 
@@ -51,7 +56,7 @@ export function scheduleReminder(person: string): void {
   const tonight23 = new Date(now);
   tonight23.setHours(23, 0, 0, 0);
 
-  let delayMs = tonight23.getTime() - now.getTime();
+  const delayMs = tonight23.getTime() - now.getTime();
   if (delayMs <= 0) return; // already past 11pm
 
   // Don't reschedule if already scheduled today

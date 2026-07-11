@@ -76,7 +76,7 @@ export default function Home() {
 
   // ─── Init: load room & name ──────────────────────
   useEffect(() => {
-    let rid = getRoomId();
+    const rid = getRoomId();
     // If no room in URL, check localStorage for saved room
     if (!rid) {
       const savedRoom = localStorage.getItem("zotracker-room");

@@ -24,14 +24,6 @@ export function durationColor(bedtime: string, wakeTime: string): string {
   return "text-rose-400"; // < 6h
 }
 
-export function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
-  const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
-  return `${month}/${day}（${weekdays[d.getDay()]}）`;
-}
-
 export function formatShortDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   return `${d.getMonth() + 1}/${d.getDate()}`;
@@ -66,27 +58,6 @@ export function smartDefaults(): {
   } else {
     return { date: todayStr(), bedtime: nowTime, wakeTime: "" };
   }
-}
-
-// ─── Person colors ───────────────────────────────────
-const personColors: Record<string, string> = {};
-const colorPalette = [
-  "bg-indigo-500",
-  "bg-emerald-500",
-  "bg-amber-400",
-  "bg-rose-400",
-  "bg-cyan-400",
-  "bg-purple-500",
-  "bg-pink-400",
-  "bg-teal-400",
-];
-
-export function getPersonColor(name: string): string {
-  if (!personColors[name]) {
-    const idx = Object.keys(personColors).length % colorPalette.length;
-    personColors[name] = colorPalette[idx];
-  }
-  return personColors[name];
 }
 
 // Chart line colors per person

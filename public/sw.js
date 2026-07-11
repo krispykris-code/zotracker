@@ -3,7 +3,7 @@
 const CACHE_NAME = "zotracker-v1";
 
 // Core pages and assets to cache
-const PRECACHE_URLS = ["/", "/stats"];
+const PRECACHE_URLS = ["/", "/stats", "/calendar"];
 
 // Install: precache core pages
 self.addEventListener("install", (e) => {
@@ -70,6 +70,12 @@ self.addEventListener("fetch", (e) => {
 });
 
 // Listen for scheduled notification messages from the app
+// KNOWN LIMITATION: setTimeout only survives while this service worker stays
+// alive. Browsers (especially iOS Safari) terminate idle service workers within
+// ~30s, so a reminder scheduled hours ahead will usually NOT fire — it is only
+// reliable while the app stays in the foreground. A truly reliable reminder
+// needs the Push API + a server. Keeping the current behavior is a deliberate
+// decision (2026-07); do not try to patch this with keep-alive hacks.
 self.addEventListener("message", (e) => {
   if (e.data && e.data.type === "SCHEDULE_REMINDER") {
     const { delayMs, title, body } = e.data;
