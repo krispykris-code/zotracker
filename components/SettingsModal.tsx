@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { APP_VERSION, APP_LAST_UPDATED } from "@/lib/version";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 // Room settings: room ID, version info, manual update check, and the
 // two-step room deletion flow (owns the confirm step internally).
@@ -19,9 +20,16 @@ export function SettingsModal({
   onClose: () => void;
 }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const ref = useModalBehavior(onClose);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+    <div
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      aria-label="房間設定"
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+    >
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div className="relative w-full max-w-xs bg-slate-900 rounded-2xl px-5 py-5">
         {!showDeleteConfirm ? (
@@ -30,6 +38,7 @@ export function SettingsModal({
               <h3 className="font-semibold text-lg">房間設定</h3>
               <button
                 onClick={onClose}
+                aria-label="關閉"
                 className="text-slate-400 hover:text-white text-xl"
               >
                 ✕

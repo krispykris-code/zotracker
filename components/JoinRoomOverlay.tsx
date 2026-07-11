@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRoomHistory } from "@/hooks/useRoomHistory";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 // Overlay for joining a room by pasted link / room ID, with quick access
 // to recently joined rooms.
@@ -29,14 +30,23 @@ export function JoinRoomOverlay({
     onJoin(joinInput.trim());
   };
 
+  const ref = useModalBehavior(onClose);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+    <div
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      aria-label="加入房間"
+      className="fixed inset-0 z-50 flex items-center justify-center px-6"
+    >
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div className="relative w-full max-w-xs bg-slate-900 rounded-2xl px-5 py-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-lg">加入房間</h3>
           <button
             onClick={onClose}
+            aria-label="關閉"
             className="text-slate-400 hover:text-white text-xl"
           >
             ✕
@@ -64,7 +74,7 @@ export function JoinRoomOverlay({
         {/* Room history */}
         {history.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-slate-500 mb-2">最近加入的房間</p>
+            <p className="text-xs text-slate-400 mb-2">最近加入的房間</p>
             <div className="flex flex-col gap-1">
               {history.map((rid) => (
                 <div
@@ -82,7 +92,8 @@ export function JoinRoomOverlay({
                       removeFromHistory(rid);
                       setHistoryVersion((v) => v + 1);
                     }}
-                    className="text-slate-600 hover:text-rose-400 px-3 py-2.5 text-sm transition-colors"
+                    aria-label={`移除 ${rid}`}
+                    className="text-slate-400 hover:text-rose-400 px-3 py-2.5 text-sm transition-colors"
                   >
                     ✕
                   </button>

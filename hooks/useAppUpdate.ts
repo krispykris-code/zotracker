@@ -3,23 +3,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { APP_VERSION } from "@/lib/version";
 import { useLocalStorageValue } from "./useLocalStorageValue";
+import type { ToastMessage } from "@/components/Toast";
 
-export interface ToastMessage {
-  type: "updating" | "complete";
-  text: string;
-}
+type ShowToast = (
+  type: ToastMessage["type"],
+  text: string,
+  autoHideMs?: number
+) => void;
 
-// Version check + update banner + update toasts.
+// Version check + update banner.
 // The banner shows when the stored version is outdated (derived state);
 // a 4s auto-update timer runs alongside it (cancellable via dismiss).
 // A sessionStorage flag persists the "更新完成" toast across the reload.
-export function useAppUpdate() {
+export function useAppUpdate(showToast: ShowToast) {
   const [storedVersion, setStoredVersion] =
     useLocalStorageValue("zotracker-version");
   const [name] = useLocalStorageValue("zotracker-name");
   const [room] = useLocalStorageValue("zotracker-room");
   const [dismissed, setDismissed] = useState(false);
-  const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
   const [showLatestMessage, setShowLatestMessage] = useState(false);
   const autoUpdateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -33,12 +34,12 @@ export function useAppUpdate() {
 
   const applyUpdate = useCallback(() => {
     if (autoUpdateTimer.current) clearTimeout(autoUpdateTimer.current);
-    setToastMessage({ type: "updating", text: "🔄 更新中..." });
+    showToast("updating", "🔄 更新中...");
     setDismissed(true);
     localStorage.setItem("zotracker-version", APP_VERSION);
     sessionStorage.setItem("zotracker-update-complete", "1");
     setTimeout(() => window.location.reload(), 800);
-  }, []);
+  }, [showToast]);
 
   const dismissUpdateBanner = useCallback(() => {
     if (autoUpdateTimer.current) clearTimeout(autoUpdateTimer.current);
@@ -76,17 +77,12 @@ export function useAppUpdate() {
   useEffect(() => {
     if (sessionStorage.getItem("zotracker-update-complete")) {
       sessionStorage.removeItem("zotracker-update-complete");
-      // One-shot mount read of a sessionStorage flag left by the pre-reload
-      // page; there is no external store to subscribe to for this handoff.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setToastMessage({ type: "complete", text: "✓ 更新完成！" });
-      setTimeout(() => setToastMessage(null), 3000);
+      showToast("complete", "✓ 更新完成！", 3000);
     }
-  }, []);
+  }, [showToast]);
 
   return {
     showUpdateBanner,
-    toastMessage,
     showLatestMessage,
     applyUpdate,
     dismissUpdateBanner,

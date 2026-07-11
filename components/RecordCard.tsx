@@ -43,7 +43,7 @@ export function RecordCard({
               {calcDuration(r.bedtime, r.wakeTime)}
             </span>
           ) : (
-            <span className="text-sm text-slate-500">待補起床時間</span>
+            <span className="text-sm text-slate-400">待補起床時間</span>
           )}
         </div>
         <div className="text-lg text-slate-400">
@@ -57,12 +57,14 @@ export function RecordCard({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => onEdit(r)}
+            aria-label="編輯紀錄"
             className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-xl text-slate-300 rounded-lg transition-colors active:scale-95"
           >
             ✎
           </button>
           <button
             onClick={() => onDelete(r.id)}
+            aria-label="刪除紀錄"
             className="w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-rose-500/20 text-xl text-slate-400 hover:text-rose-400 rounded-lg transition-colors active:scale-95"
           >
             ✕

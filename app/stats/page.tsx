@@ -25,12 +25,13 @@ import { useRoomId } from "@/hooks/useRoomId";
 import { useRoomRecords } from "@/hooks/useRoomRecords";
 import { AppHeader } from "@/components/AppHeader";
 import { PersonFilter } from "@/components/PersonFilter";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 type Range = "7d" | "30d" | "all";
 
 export default function StatsPage() {
   const roomId = useRoomId();
-  const { records } = useRoomRecords(roomId, "asc");
+  const { records, loading, error } = useRoomRecords(roomId, "asc");
   const [range, setRange] = useState<Range>("7d");
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
 
@@ -146,6 +147,14 @@ export default function StatsPage() {
       />
 
       <main className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-5 py-4">
+        {error && (
+          <p className="text-center text-rose-400 text-sm mb-3">
+            連線異常，顯示的可能是離線資料
+          </p>
+        )}
+        {loading && <LoadingSpinner />}
+        {!loading && (
+          <>
         {/* Range selector */}
         <div className="flex gap-2 mb-4">
           {(["7d", "30d", "all"] as Range[]).map((r) => (
@@ -188,7 +197,7 @@ export default function StatsPage() {
               {bestDay ? calcDuration(bestDay.bedtime, bestDay.wakeTime) : "—"}
             </p>
             {bestDay && (
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 {formatShortDate(bestDay.date)} · {bestDay.person}
               </p>
             )}
@@ -282,7 +291,7 @@ export default function StatsPage() {
                 >
                   <span className="text-sm text-slate-300">{w.label}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-400">
                       {w.count} 筆
                     </span>
                     <span className={`font-semibold ${hoursColor(w.avg)}`}>
@@ -309,7 +318,7 @@ export default function StatsPage() {
                 >
                   <span className="text-sm text-slate-300">{m.label}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-400">
                       {m.count} 筆
                     </span>
                     <span className={`font-semibold ${hoursColor(m.avg)}`}>
@@ -323,11 +332,13 @@ export default function StatsPage() {
         )}
 
         {filteredRecords.length === 0 && (
-          <div className="text-center text-slate-500 mt-16">
+          <div className="text-center text-slate-400 mt-16">
             <div className="text-4xl mb-3">📊</div>
             <p>還沒有足夠的資料</p>
             <p className="text-sm mt-1">開始記錄睡眠後，統計數據會自動出現！</p>
           </div>
+        )}
+          </>
         )}
       </main>
     </div>

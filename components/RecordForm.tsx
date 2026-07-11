@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { calcDuration } from "@/lib/sleep";
 import { durationColor } from "@/lib/sleepQuality";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 export interface RecordFormValues {
   date: string;
@@ -28,9 +29,16 @@ export function RecordForm({
   const [bedtime, setBedtime] = useState(initial.bedtime);
   const [wakeTime, setWakeTime] = useState(initial.wakeTime);
   const [isMc, setIsMc] = useState(initial.isMc);
+  const ref = useModalBehavior(onClose);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      aria-label={isEditing ? "編輯紀錄" : "新增紀錄"}
+      className="fixed inset-0 z-50 flex items-end justify-center"
+    >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       {/* Form card */}
@@ -41,6 +49,7 @@ export function RecordForm({
           </h3>
           <button
             onClick={onClose}
+            aria-label="關閉"
             className="text-slate-400 hover:text-white text-xl"
           >
             ✕

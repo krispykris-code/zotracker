@@ -11,12 +11,13 @@ import { useRoomRecords } from "@/hooks/useRoomRecords";
 import { useLocalStorageValue } from "@/hooks/useLocalStorageValue";
 import { AppHeader } from "@/components/AppHeader";
 import { PersonFilter } from "@/components/PersonFilter";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
 export default function CalendarPage() {
   const roomId = useRoomId();
-  const { records } = useRoomRecords(roomId, "asc");
+  const { records, loading, error } = useRoomRecords(roomId, "asc");
   const [savedName] = useLocalStorageValue("zotracker-name");
   // Defaults to the current user; switching chips overrides it.
   const [personOverride, setPersonOverride] = useState<string | null>(null);
@@ -66,6 +67,21 @@ export default function CalendarPage() {
       />
 
       <main className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-5 py-4">
+        {error && (
+          <p className="text-center text-rose-400 text-sm mb-3">
+            連線異常，顯示的可能是離線資料
+          </p>
+        )}
+        {loading && <LoadingSpinner />}
+        {!loading && (
+          <>
+        {records.length === 0 && (
+          <div className="text-center text-slate-400 mt-4 mb-6">
+            <div className="text-4xl mb-3">📅</div>
+            <p>這個房間還沒有任何紀錄</p>
+            <p className="text-sm mt-1">開始記錄後，月曆會用顏色標示每天的睡眠！</p>
+          </div>
+        )}
         {/* Person filter */}
         {persons.length > 0 && (
           <PersonFilter
@@ -109,7 +125,7 @@ export default function CalendarPage() {
                 {WEEKDAYS.map((w) => (
                   <div
                     key={w}
-                    className="text-center text-xs text-slate-500 py-1"
+                    className="text-center text-xs text-slate-400 py-1"
                   >
                     {w}
                   </div>
@@ -152,6 +168,8 @@ export default function CalendarPage() {
             </div>
           );
         })}
+          </>
+        )}
       </main>
     </div>
   );

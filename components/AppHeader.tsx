@@ -16,7 +16,7 @@ export function AppHeader({
     <header className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
       <div>
         {title}
-        <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+        <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
       </div>
       {actions}
     </header>
