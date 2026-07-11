@@ -1,6 +1,6 @@
 // ZoTracker Service Worker
 
-const CACHE_NAME = "zotracker-v1";
+const CACHE_NAME = "zotracker-v1.6";
 
 // Core pages and assets to cache
 const PRECACHE_URLS = ["/", "/stats", "/calendar"];
